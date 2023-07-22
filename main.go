@@ -29,6 +29,10 @@ type Include struct {
 	Aliases  []string       `yaml:"aliases,omitempty"`
 }
 
+var (
+	IGNORE_CACHE = os.Getenv("KIT_IGNORE_CACHE") == "true"
+)
+
 func main() {
 	// if no taskfile, call task anyways, let it handle the error
 	taskfilePath, exists := getTaskFile(fileExists)
@@ -82,7 +86,7 @@ func process(taskfilePath string) (string, error) {
 	includes := make(map[string]Include)
 	for k, v := range taskfile.Includes {
 		path := filepath.Join(cwd, ".kit", k)
-		if _, err := os.Stat(path); err != nil {
+		if !fileExists(path) || IGNORE_CACHE {
 			if err := Get(v.Taskfile, path, cwd, true); err != nil {
 				return "", errors.Wrap(err, "failed to get "+k)
 			}
