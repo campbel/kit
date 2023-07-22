@@ -1,0 +1,14 @@
+version: "3"
+
+kit:
+  foo: https://raw.githubusercontent.com/campbel/kit/main/examples/install_go.yaml
+
+tasks:
+  default:
+    cmds:
+      - task -l
+  
+  setup:
+    desc: Setup the project
+    cmds:
+      - task: kit:foo:install_go
