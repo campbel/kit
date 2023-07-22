@@ -9,7 +9,7 @@ includes:
 tasks:
   default:
     cmds:
-      - task -l
+      - task --dir .kit -l
   
   setup:
     desc: Setup the project
