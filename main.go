@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"os/exec"
+	"path/filepath"
 	"reflect"
 
 	"github.com/hashicorp/go-getter"
@@ -50,10 +51,10 @@ func main() {
 
 		includes := make(map[string]Include)
 		for k, v := range taskfile.Includes {
-			path := cwd + "/.kit/" + k
+			path := filepath.Join(cwd, ".kit", k)
 			if _, err := os.Stat(path); err != nil {
-				if err := Get(v.Taskfile, cwd+"/.kit/"+k, cwd, true); err != nil {
-					return errors.Wrap(err, "failed to get kit "+k)
+				if err := Get(v.Taskfile, path, cwd, true); err != nil {
+					return errors.Wrap(err, "failed to get "+k)
 				}
 				if taskfile.Includes == nil {
 					taskfile.Includes = make(map[string]Include)
@@ -82,7 +83,7 @@ func main() {
 	}()
 
 	if err != nil {
-		panic(err)
+		panic(errors.Wrap(err, "kit pre-processing failure"))
 	}
 }
 
