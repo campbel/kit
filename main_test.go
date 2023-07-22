@@ -1,9 +1,70 @@
 package main
 
 import (
+	"os"
 	"reflect"
 	"testing"
 )
+
+func TestGetTaskFile(t *testing.T) {
+	tests := []struct {
+		name         string
+		args         []string
+		fileExistsFn func(path string) bool
+		want         string
+	}{
+		{
+			name: "returns taskfile from flag",
+			args: []string{"cmd", "-t", "Taskfile.yml"},
+			fileExistsFn: func(path string) bool {
+				return path == "Taskfile.yml"
+			},
+			want: "Taskfile.yml",
+		},
+		{
+			name: "returns taskfile from equals flag",
+			args: []string{"cmd", "--taskfile=Taskfile.yml"},
+			fileExistsFn: func(path string) bool {
+				return path == "Taskfile.yml"
+			},
+			want: "Taskfile.yml",
+		},
+		{
+			name: "returns default taskfile",
+			args: []string{"cmd"},
+			fileExistsFn: func(path string) bool {
+				return path == "Taskfile.yml"
+			},
+			want: "Taskfile.yml",
+		},
+		{
+			name: "returns empty string if no taskfile found",
+			args: []string{"cmd"},
+			fileExistsFn: func(path string) bool {
+				return false
+			},
+			want: "",
+		},
+		{
+			name: "returns another default if that exists",
+			args: []string{"cmd"},
+			fileExistsFn: func(path string) bool {
+				return path == "taskfile.yml"
+			},
+			want: "taskfile.yml",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			os.Args = tt.args
+			got := getTaskFile(tt.fileExistsFn)
+			if got != tt.want {
+				t.Errorf("getTaskFile() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
 
 func TestFilterArgs(t *testing.T) {
 	tests := []struct {
