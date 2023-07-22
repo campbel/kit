@@ -12,12 +12,9 @@ import (
 
 type Taskfile struct {
 	Version  string            `yaml:"version,omitempty"`
-	Kit      map[string]string `yaml:"kit,omitempty"`
 	Includes map[string]string `yaml:"includes,omitempty"`
 	Tasks    map[string]any    `yaml:"tasks,omitempty"`
 }
-
-type AnyMap map[string]any
 
 func main() {
 	yoshi.New("kit").Run(func() error {
@@ -40,17 +37,21 @@ func main() {
 			return err
 		}
 
-		for k, v := range taskfile.Kit {
-			if err := getter.Get(cwd+"/.kit/"+k, v); err != nil {
-				return errors.Wrap(err, "failed to get kit "+k)
+		includes := make(map[string]string)
+		for k, v := range taskfile.Includes {
+			path := cwd + "/.kit/" + k
+			if _, err := os.Stat(path); err != nil {
+				if err := Get(v, cwd+"/.kit/"+k, cwd, true); err != nil {
+					return errors.Wrap(err, "failed to get kit "+k)
+				}
+				if taskfile.Includes == nil {
+					taskfile.Includes = make(map[string]string)
+				}
 			}
-			if taskfile.Includes == nil {
-				taskfile.Includes = make(map[string]string)
-			}
-			taskfile.Includes["kit:"+k] = k
+			includes[k] = k
 		}
 
-		taskfile.Kit = nil
+		taskfile.Includes = includes
 		out, err := yaml.Marshal(taskfile)
 		if err != nil {
 			return err
@@ -67,4 +68,14 @@ func main() {
 
 		return cmd.Run()
 	})
+}
+
+func Get(src, dst, pwd string, dir bool) error {
+	return (&getter.Client{
+		Src:     src,
+		Dst:     dst,
+		Pwd:     pwd,
+		Dir:     true,
+		Options: nil,
+	}).Get()
 }

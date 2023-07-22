@@ -1,7 +1,8 @@
 version: "3"
 
-kit:
+includes:
   golang: github.com/campbel/kit/examples/golang
+  hello-world: .task/hello-world
 
 tasks:
   default:
@@ -11,4 +12,9 @@ tasks:
   setup:
     desc: Setup the project
     cmds:
-      - task: kit:golang:install
+      - task: golang:install
+
+  hello-world:
+    desc: Run the hello-world project
+    cmds:
+      - task: hello-world:run
