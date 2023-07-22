@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"strings"
 
 	"github.com/hashicorp/go-getter"
 	"github.com/mitchellh/mapstructure"
@@ -29,62 +30,74 @@ type Include struct {
 }
 
 func main() {
-	err := func() error {
-		data, err := os.ReadFile("taskfile.yml")
+	taskfilePath := getTaskFile(fileExists)
+
+	if _, err := os.Stat(taskfilePath); err == nil {
+		output, err := process(taskfilePath)
 		if err != nil {
-			return err
+			panic(errors.Wrap(err, "kit failed to process taskfile"))
 		}
-
-		var taskfile Taskfile
-		if err := unmarshal(data, &taskfile); err != nil {
-			return err
-		}
-
-		if err := os.MkdirAll(".kit", 0755); err != nil {
-			return err
-		}
-
-		cwd, err := os.Getwd()
-		if err != nil {
-			return err
-		}
-
-		includes := make(map[string]Include)
-		for k, v := range taskfile.Includes {
-			path := filepath.Join(cwd, ".kit", k)
-			if _, err := os.Stat(path); err != nil {
-				if err := Get(v.Taskfile, path, cwd, true); err != nil {
-					return errors.Wrap(err, "failed to get "+k)
-				}
-				if taskfile.Includes == nil {
-					taskfile.Includes = make(map[string]Include)
-				}
-			}
-			v.Taskfile = k
-			includes[k] = v
-		}
-
-		taskfile.Includes = includes
-		out, err := yaml.Marshal(taskfile)
-		if err != nil {
-			return err
-		}
-
-		if err := os.WriteFile(".kit/taskfile.yml", out, 0644); err != nil {
-			return err
-		}
-
-		cmd := exec.Command("task", append([]string{"--taskfile", ".kit/taskfile.yml"}, os.Args[1:]...)...)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		cmd.Stdin = os.Stdin
-
-		return cmd.Run()
-	}()
-
-	if err != nil {
-		panic(errors.Wrap(err, "kit pre-processing failure"))
+		taskfilePath = output
 	}
+
+	cmd := exec.Command("task", filterArgs(os.Args)...)
+	if taskfilePath != "" {
+		cmd.Args = append(cmd.Args, "--taskfile", taskfilePath)
+	}
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	cmd.Run()
+}
+
+func process(taskfilePath string) (string, error) {
+	data, err := os.ReadFile(taskfilePath)
+	if err != nil {
+		return "", err
+	}
+
+	var taskfile Taskfile
+	if err := unmarshal(data, &taskfile); err != nil {
+		return "", err
+	}
+
+	if err := os.MkdirAll(".kit", 0755); err != nil {
+		return "", err
+	}
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	includes := make(map[string]Include)
+	for k, v := range taskfile.Includes {
+		path := filepath.Join(cwd, ".kit", k)
+		if _, err := os.Stat(path); err != nil {
+			if err := Get(v.Taskfile, path, cwd, true); err != nil {
+				return "", errors.Wrap(err, "failed to get "+k)
+			}
+			if taskfile.Includes == nil {
+				taskfile.Includes = make(map[string]Include)
+			}
+		}
+		v.Taskfile = k
+		includes[k] = v
+	}
+
+	taskfile.Includes = includes
+	out, err := yaml.Marshal(taskfile)
+	if err != nil {
+		return "", err
+	}
+
+	outputPath := filepath.Join(cwd, ".kit", "taskfile.yml")
+	if err := os.WriteFile(outputPath, out, 0644); err != nil {
+		return "", err
+	}
+
+	return outputPath, nil
 }
 
 func Get(src, dst, pwd string, dir bool) error {
@@ -126,4 +139,55 @@ func unmarshal(data []byte, v interface{}) error {
 	}
 
 	return errors.Wrap(decoder.Decode(a), "failed to decode")
+}
+
+var (
+	defaultTaskfiles = []string{
+		"Taskfile.yml",
+		"taskfile.yml",
+		"Taskfile.yaml",
+		"taskfile.yaml",
+		"Taskfile.dist.yml",
+		"taskfile.dist.yml",
+		"Taskfile.dist.yaml",
+		"taskfile.dist.yaml",
+	}
+)
+
+func fileExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
+}
+
+func getTaskFile(fnFileExists func(path string) bool) string {
+	for i, arg := range os.Args[1:] {
+		if (arg == "--taskfile" || arg == "-t") && len(os.Args) > i+2 {
+			return os.Args[i+2]
+		}
+		if strings.HasPrefix(arg, "--taskfile=") || strings.HasPrefix(arg, "-t=") {
+			return strings.Split(arg, "=")[1]
+		}
+	}
+	for _, taskfile := range defaultTaskfiles {
+		if fnFileExists(taskfile) {
+			return taskfile
+		}
+	}
+	return ""
+}
+
+func filterArgs(args []string) []string {
+	filteredArgs := []string{}
+	for i := 1; i < len(args); i++ {
+		arg := args[i]
+		if (arg == "--taskfile" || arg == "-t") && len(args) >= i+2 {
+			i++
+			continue
+		}
+		if strings.HasPrefix(arg, "--taskfile=") || strings.HasPrefix(arg, "-t=") {
+			continue
+		}
+		filteredArgs = append(filteredArgs, arg)
+	}
+	return filteredArgs
 }
