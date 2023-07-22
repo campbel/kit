@@ -8,3 +8,8 @@ tasks:
     desc: Install Go
     cmds:
       - task: os:install
+
+  build:
+    desc: Go build
+    cmds:
+      - go build ./...
