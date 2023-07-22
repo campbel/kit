@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 
@@ -42,14 +41,13 @@ func main() {
 		}
 
 		for k, v := range taskfile.Kit {
-			fmt.Println(v)
-			if err := getter.Get(cwd+"/.kit", v); err != nil {
+			if err := getter.Get(cwd+"/.kit/"+k, v); err != nil {
 				return errors.Wrap(err, "failed to get kit "+k)
 			}
 			if taskfile.Includes == nil {
 				taskfile.Includes = make(map[string]string)
 			}
-			taskfile.Includes["kit:"+k] = k + ".yml"
+			taskfile.Includes["kit:"+k] = k
 		}
 
 		taskfile.Kit = nil

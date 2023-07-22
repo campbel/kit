@@ -11,4 +11,4 @@ tasks:
   setup:
     desc: Setup the project
     cmds:
-      - task: kit:golang:install_go
+      - task: kit:golang:install
