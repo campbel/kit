@@ -11,6 +11,7 @@ func TestGetTaskFile(t *testing.T) {
 		name         string
 		args         []string
 		fileExistsFn func(path string) bool
+		shouldExist  bool
 		want         string
 	}{
 		{
@@ -19,7 +20,8 @@ func TestGetTaskFile(t *testing.T) {
 			fileExistsFn: func(path string) bool {
 				return path == "Taskfile.yml"
 			},
-			want: "Taskfile.yml",
+			shouldExist: true,
+			want:        "Taskfile.yml",
 		},
 		{
 			name: "returns taskfile from equals flag",
@@ -27,7 +29,8 @@ func TestGetTaskFile(t *testing.T) {
 			fileExistsFn: func(path string) bool {
 				return path == "Taskfile.yml"
 			},
-			want: "Taskfile.yml",
+			shouldExist: true,
+			want:        "Taskfile.yml",
 		},
 		{
 			name: "returns default taskfile",
@@ -35,7 +38,8 @@ func TestGetTaskFile(t *testing.T) {
 			fileExistsFn: func(path string) bool {
 				return path == "Taskfile.yml"
 			},
-			want: "Taskfile.yml",
+			shouldExist: true,
+			want:        "Taskfile.yml",
 		},
 		{
 			name: "returns empty string if no taskfile found",
@@ -43,7 +47,8 @@ func TestGetTaskFile(t *testing.T) {
 			fileExistsFn: func(path string) bool {
 				return false
 			},
-			want: "",
+			shouldExist: false,
+			want:        "",
 		},
 		{
 			name: "returns another default if that exists",
@@ -51,14 +56,18 @@ func TestGetTaskFile(t *testing.T) {
 			fileExistsFn: func(path string) bool {
 				return path == "taskfile.yml"
 			},
-			want: "taskfile.yml",
+			shouldExist: true,
+			want:        "taskfile.yml",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			os.Args = tt.args
-			got := getTaskFile(tt.fileExistsFn)
+			got, exists := getTaskFile(tt.fileExistsFn)
+			if exists != tt.shouldExist {
+				t.Errorf("getTaskFile() exists = %v, want %v", exists, tt.want != "")
+			}
 			if got != tt.want {
 				t.Errorf("getTaskFile() = %v, want %v", got, tt.want)
 			}

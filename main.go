@@ -30,25 +30,33 @@ type Include struct {
 }
 
 func main() {
-	taskfilePath := getTaskFile(fileExists)
-
-	if _, err := os.Stat(taskfilePath); err == nil {
-		output, err := process(taskfilePath)
-		if err != nil {
-			panic(errors.Wrap(err, "kit failed to process taskfile"))
-		}
-		taskfilePath = output
+	// if no taskfile, call task anyways, let it handle the error
+	taskfilePath, exists := getTaskFile(fileExists)
+	if !exists {
+		callTask(os.Args[1:])
+		return
 	}
 
-	cmd := exec.Command("task", filterArgs(os.Args)...)
-	if taskfilePath != "" {
-		cmd.Args = append(cmd.Args, "--taskfile", taskfilePath)
+	output, err := process(taskfilePath)
+	if err != nil {
+		panic(errors.Wrap(err, "kit failed to process taskfile"))
 	}
+
+	args := append(
+		[]string{"--taskfile", output},
+		filterArgs(os.Args)...,
+	)
+
+	callTask(args)
+}
+
+func callTask(args []string) error {
+	cmd := exec.Command("task", args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 
-	cmd.Run()
+	return cmd.Run()
 }
 
 func process(taskfilePath string) (string, error) {
@@ -159,21 +167,23 @@ func fileExists(path string) bool {
 	return err == nil
 }
 
-func getTaskFile(fnFileExists func(path string) bool) string {
+func getTaskFile(fnFileExists func(path string) bool) (string, bool) {
 	for i, arg := range os.Args[1:] {
 		if (arg == "--taskfile" || arg == "-t") && len(os.Args) > i+2 {
-			return os.Args[i+2]
+			file := os.Args[i+2]
+			return file, fileExists(file)
 		}
 		if strings.HasPrefix(arg, "--taskfile=") || strings.HasPrefix(arg, "-t=") {
-			return strings.Split(arg, "=")[1]
+			file := strings.Split(arg, "=")[1]
+			return file, fileExists(file)
 		}
 	}
 	for _, taskfile := range defaultTaskfiles {
 		if fnFileExists(taskfile) {
-			return taskfile
+			return taskfile, true
 		}
 	}
-	return ""
+	return "", false
 }
 
 func filterArgs(args []string) []string {
