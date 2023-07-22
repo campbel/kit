@@ -6,6 +6,7 @@ import (
 
 	"github.com/campbel/yoshi"
 	"github.com/hashicorp/go-getter"
+	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
@@ -34,7 +35,7 @@ func main() {
 		}
 
 		var taskfile Taskfile
-		if err := yaml.Unmarshal(data, &taskfile); err != nil {
+		if err := unmarshal(data, &taskfile); err != nil {
 			return err
 		}
 
@@ -89,4 +90,20 @@ func Get(src, dst, pwd string, dir bool) error {
 		Dir:     true,
 		Options: nil,
 	}).Get()
+}
+
+func unmarshal(data []byte, v interface{}) error {
+	var a any
+	if err := yaml.Unmarshal(data, &a); err != nil {
+		return err
+	}
+
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Result: &v,
+	})
+	if err != nil {
+		return err
+	}
+
+	return decoder.Decode(a)
 }
