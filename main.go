@@ -17,7 +17,7 @@ type Taskfile struct {
 	Includes map[string]Include `yaml:"includes,omitempty"`
 	Env      map[string]string  `yaml:"env,omitempty"`
 	Dotenv   []string           `yaml:"dotenv,omitempty"`
-	Tasks    map[string]any     `yaml:"tasks,omitempty"`
+	Tasks    yaml.MapSlice      `yaml:"tasks,omitempty"`
 }
 
 type Include struct {
@@ -96,7 +96,7 @@ func Get(src, dst, pwd string, dir bool) error {
 func unmarshal(data []byte, v interface{}) error {
 	var a any
 	if err := yaml.Unmarshal(data, &a); err != nil {
-		return err
+		return errors.Wrap(err, "failed to unmarshal yaml")
 	}
 
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
@@ -105,13 +105,21 @@ func unmarshal(data []byte, v interface{}) error {
 			if fromType == reflect.TypeOf("") && toType == reflect.TypeOf(Include{}) {
 				return Include{Taskfile: from.(string)}, nil
 			}
+			// if fromType is map and toType is yaml.MapSlice, map map to yaml.MapSlice
+			if fromType == reflect.TypeOf(map[any]any{}) && toType == reflect.TypeOf(yaml.MapSlice{}) {
+				var returnFrom yaml.MapSlice
+				for k, v := range from.(map[any]any) {
+					returnFrom = append(returnFrom, yaml.MapItem{Key: k, Value: v})
+				}
+				return returnFrom, nil
+			}
 			return from, nil
 		},
 		Result: &v,
 	})
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to create decoder")
 	}
 
-	return decoder.Decode(a)
+	return errors.Wrap(decoder.Decode(a), "failed to decode")
 }

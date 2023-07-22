@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/campbel/yoshi v0.0.0-20230226014620-f5032e3357d2
 	github.com/hashicorp/go-getter v1.7.1
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/pkg/errors v0.9.1
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -29,9 +30,7 @@ require (
 	github.com/klauspost/compress v1.15.11 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
-	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
-	github.com/wk8/go-ordered-map v1.0.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/net v0.1.0 // indirect
 	golang.org/x/oauth2 v0.1.0 // indirect
