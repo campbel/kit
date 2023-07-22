@@ -13,6 +13,7 @@ type App struct {
 	Edit  func() error
 	Clone func() error
 	Shell func(types.ShellOptions) error
+	Deps  func(types.DepsOptions) error
 }
 
 func main() {
@@ -21,6 +22,7 @@ func main() {
 		Edit:  implementedInShell,
 		Clone: implementedInShell,
 		Shell: commands.Shell,
+		Deps:  commands.Deps,
 	})
 }
 

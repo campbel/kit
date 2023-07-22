@@ -1,2 +1,4 @@
 github.com/campbel/yoshi v0.0.0-20230226014620-f5032e3357d2 h1:t9HSDB+pjj6YQZ1jVzNfsINf7K66J/i/tE7bGQLcpTs=
 github.com/campbel/yoshi v0.0.0-20230226014620-f5032e3357d2/go.mod h1:TzuanOH/S21uXuFKKe+xqs3ihx26njQqizKEolztFmQ=
+golang.org/x/mod v0.12.0 h1:rmsUpXtvNzj340zd98LZ4KntptpfRHwpFOHG188oHXc=
+golang.org/x/mod v0.12.0/go.mod h1:iBbtSCu2XBx23ZKBPSOrRkjjQPZFPuis4dIYUhu/chs=
