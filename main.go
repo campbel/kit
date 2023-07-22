@@ -106,8 +106,14 @@ func process(taskfilePath string) (string, error) {
 	for k, v := range taskfile.Tasks {
 		// If v is a map, update dir
 		if vMap, ok := v.(map[any]any); ok {
-			if _, exists := vMap["dir"]; !exists {
+			if dir, exists := vMap["dir"]; !exists {
 				vMap["dir"] = cwd
+			} else {
+				if dirStr, ok := dir.(string); ok {
+					if !filepath.IsAbs(dirStr) {
+						vMap["dir"] = filepath.Join(cwd, dirStr)
+					}
+				}
 			}
 			taskfile.Tasks[k] = vMap
 		}
