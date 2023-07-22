@@ -10,4 +10,4 @@ tasks:
     status:
       - "command -v go"
     cmds:
-      - tasl: os:install
+      - task: os:install
