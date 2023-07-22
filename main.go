@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"os/exec"
+	"reflect"
 
 	"github.com/campbel/yoshi"
 	"github.com/hashicorp/go-getter"
@@ -99,6 +100,13 @@ func unmarshal(data []byte, v interface{}) error {
 	}
 
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		DecodeHook: func(fromType, toType reflect.Type, from any) (any, error) {
+			// if fromType is string and toType is Include, map string to Include.Taskfile
+			if fromType == reflect.TypeOf("") && toType == reflect.TypeOf(Include{}) {
+				return Include{Taskfile: from.(string)}, nil
+			}
+			return from, nil
+		},
 		Result: &v,
 	})
 	if err != nil {

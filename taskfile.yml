@@ -1,8 +1,7 @@
 version: "3"
 
 includes:
-  golang: 
-    taskfile: github.com/campbel/kit/tasks/golang   # Github repo
+  golang: github.com/campbel/kit/tasks/golang   # Github repo
   hello-world: 
     taskfile: tasks/hello-world                     # Local directory
 
