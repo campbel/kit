@@ -11,10 +11,25 @@ tasks:
 
   build:
     desc: Go build
+    deps: [install]
+    vars:
+      PKG: '{{default "./..." .PKG}}'
     cmds:
-      - go build -o bin/ ./...
+      - go build -o bin/ {{.PKG}}
 
   run:
     desc: Go run
+    deps: [install]
+    vars: 
+      PKG: '{{default "./..." .PKG}}'
     cmds:
-      - go run .
+      - go run {{.PKG}}
+  
+  test:
+    desc: Go run
+    deps: [install]
+    vars: 
+      PKG: '{{default "./..." .PKG}}'
+      FLAGS: '{{default "-cover" .FLAGS}}'
+    cmds:
+      - go test {{.PKG}} {{.FLAGS}}

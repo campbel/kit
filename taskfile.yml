@@ -15,12 +15,15 @@ tasks:
   
   build:
     desc: Build the project
-    deps: [go:install]
     cmds:
       - task: go:build
 
   run:
     desc: Run the project
-    deps: [go:install]
     cmds:
       - task: go:run
+
+  test:
+    desc: Run the tests
+    cmds:
+      - task: go:test
