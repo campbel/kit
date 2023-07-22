@@ -1,5 +1,8 @@
 version: "3"
 
+includes:
+  os: taskfile_{{OS}}.yaml
+
 tasks:
   install:
     desc: Install Go
@@ -7,4 +10,4 @@ tasks:
     status:
       - "command -v go"
     cmds:
-      - brew install go
+      - tasl: os:install
