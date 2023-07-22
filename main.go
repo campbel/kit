@@ -1,12 +1,13 @@
 package main
 
 import (
-	"io"
-	"net/http"
+	"fmt"
 	"os"
 	"os/exec"
 
 	"github.com/campbel/yoshi"
+	"github.com/hashicorp/go-getter"
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
@@ -35,23 +36,15 @@ func main() {
 			return err
 		}
 
+		cwd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+
 		for k, v := range taskfile.Kit {
-			resp, err := http.Get(v)
-			if err != nil {
-				return err
-			}
-			file, err := os.Create(".kit/" + k + ".yml")
-			if err != nil {
-				return err
-			}
-			if _, err := io.Copy(file, resp.Body); err != nil {
-				return err
-			}
-			if err := file.Close(); err != nil {
-				return err
-			}
-			if err := resp.Body.Close(); err != nil {
-				return err
+			fmt.Println(v)
+			if err := getter.Get(cwd+"/.kit", v); err != nil {
+				return errors.Wrap(err, "failed to get kit "+k)
 			}
 			if taskfile.Includes == nil {
 				taskfile.Includes = make(map[string]string)
