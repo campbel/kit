@@ -1,7 +1,9 @@
 version: "3"
 
 includes:
-  go: tasks/golang
+  go: 
+    taskfile: tasks/golang
+    internal: true
   hello-world: 
     taskfile: github.com/campbel/kit/tasks/hello-world
     internal: true
@@ -11,12 +13,14 @@ tasks:
     cmds:
       - task --dir .kit -l
   
-  setup:
-    desc: Setup the project
+  build:
+    desc: Build the project
+    deps: [go:install]
     cmds:
-      - task: go:install
+      - task: go:build
 
-  hello-world:
-    desc: Run the hello-world project
+  run:
+    desc: Run the project
+    deps: [go:install]
     cmds:
-      - task: hello-world:run
+      - task: go:run

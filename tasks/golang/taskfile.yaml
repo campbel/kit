@@ -13,3 +13,8 @@ tasks:
     desc: Go build
     cmds:
       - go build -o bin/ ./...
+
+  run:
+    desc: Go run
+    cmds:
+      - go run .
