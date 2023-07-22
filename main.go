@@ -18,7 +18,7 @@ type Taskfile struct {
 	Includes map[string]Include `yaml:"includes,omitempty"`
 	Env      map[string]string  `yaml:"env,omitempty"`
 	Dotenv   []string           `yaml:"dotenv,omitempty"`
-	Tasks    yaml.MapSlice      `yaml:"tasks,omitempty"`
+	Tasks    map[string]any     `yaml:"tasks,omitempty"`
 }
 
 type Include struct {
@@ -47,9 +47,9 @@ func main() {
 		panic(errors.Wrap(err, "kit failed to process taskfile"))
 	}
 
-	args := append(
+	args := extend(
 		[]string{"--taskfile", output},
-		filterArgs(os.Args)...,
+		filterArgs(os.Args),
 	)
 
 	callTask(args)
@@ -84,6 +84,7 @@ func process(taskfilePath string) (string, error) {
 		return "", err
 	}
 
+	// Update includes
 	includes := make(map[string]Include)
 	for k, v := range taskfile.Includes {
 		path := filepath.Join(cwd, ".kit", k)
@@ -96,10 +97,22 @@ func process(taskfilePath string) (string, error) {
 			}
 		}
 		v.Taskfile = k
+		v.Dir = cwd
 		includes[k] = v
 	}
-
 	taskfile.Includes = includes
+
+	// Update tasks
+	for k, v := range taskfile.Tasks {
+		// If v is a map, update dir
+		if vMap, ok := v.(map[any]any); ok {
+			if _, exists := vMap["dir"]; !exists {
+				vMap["dir"] = cwd
+			}
+			taskfile.Tasks[k] = vMap
+		}
+	}
+
 	out, err := yaml.Marshal(taskfile)
 	if err != nil {
 		return "", err
@@ -205,4 +218,11 @@ func filterArgs(args []string) []string {
 		filteredArgs = append(filteredArgs, arg)
 	}
 	return filteredArgs
+}
+
+func extend(args []string, arg ...[]string) []string {
+	for _, a := range arg {
+		args = append(args, a...)
+	}
+	return args
 }
