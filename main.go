@@ -5,7 +5,6 @@ import (
 	"os/exec"
 	"reflect"
 
-	"github.com/campbel/yoshi"
 	"github.com/hashicorp/go-getter"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
@@ -29,7 +28,7 @@ type Include struct {
 }
 
 func main() {
-	yoshi.New("kit").Run(func() error {
+	err := func() error {
 		data, err := os.ReadFile("taskfile.yml")
 		if err != nil {
 			return err
@@ -80,7 +79,11 @@ func main() {
 		cmd.Stdin = os.Stdin
 
 		return cmd.Run()
-	})
+	}()
+
+	if err != nil {
+		panic(err)
+	}
 }
 
 func Get(src, dst, pwd string, dir bool) error {
