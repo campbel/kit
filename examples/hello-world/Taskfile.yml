@@ -1,0 +1,5 @@
+# ./Taskfile.yaml
+version: "3"
+
+includes:
+  hello-world: github.com/campbel/kit/tasks/hello-world
