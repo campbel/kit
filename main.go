@@ -25,6 +25,7 @@ type Include struct {
 	Taskfile string         `yaml:"taskfile,omitempty"`
 	Dir      string         `yaml:"dir,omitempty"`
 	Optional bool           `yaml:"optional,omitempty"`
+	Internal bool           `yaml:"internal,omitempty"`
 	Vars     map[string]any `yaml:"vars,omitempty"`
 	Aliases  []string       `yaml:"aliases,omitempty"`
 }
