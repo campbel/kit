@@ -6,6 +6,7 @@ import (
 
 	"github.com/campbel/kit/deps"
 	"github.com/campbel/kit/types"
+	"gopkg.in/yaml.v2"
 )
 
 func Deps(opts types.DepsOptions) error {
@@ -28,8 +29,23 @@ func Deps(opts types.DepsOptions) error {
 	}
 
 	dependencies := deps.DetermineDepsFromFiles(files)
-	for _, dep := range dependencies {
-		fmt.Println(dep.Name(), dep.Version())
+	if opts.Task {
+		taskfile := types.Taskfile{
+			Version: types.TaskfileVersion3,
+			Tasks:   make(map[string]types.Task),
+		}
+		for _, dep := range dependencies {
+			taskfile.Tasks["setup:"+dep.Name()] = dep.Task()
+		}
+		data, err := yaml.Marshal(taskfile)
+		if err != nil {
+			return err
+		}
+		fmt.Print(string(data))
+	} else {
+		for _, dep := range dependencies {
+			fmt.Println(dep.Name(), dep.Version())
+		}
 	}
 
 	return nil

@@ -3,6 +3,7 @@ package deps
 import (
 	"os"
 
+	"github.com/campbel/kit/types"
 	"golang.org/x/mod/modfile"
 )
 
@@ -36,6 +37,16 @@ func (g *Golang) Version() string {
 	return g.modfile.Go.Version
 }
 
-func (g *Golang) Install() error {
-	return nil
+func (g *Golang) Task() types.Task {
+	return types.Task{
+		Description: "Install golang",
+		Status: []string{
+			"command -v go",
+		},
+		Commands: []types.Command{
+			{
+				Command: "brew install go@" + g.Version(),
+			},
+		},
+	}
 }

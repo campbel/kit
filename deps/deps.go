@@ -1,11 +1,15 @@
 package deps
 
-import "path/filepath"
+import (
+	"path/filepath"
+
+	"github.com/campbel/kit/types"
+)
 
 type Dependency interface {
 	Name() string
 	Version() string
-	Install() error
+	Task() types.Task
 }
 
 func DetermineDepsFromFiles(files []string) []Dependency {
