@@ -4,9 +4,6 @@ includes:
   os: taskfile_{{OS}}.yaml
 
 tasks:
-  default:
-    cmds:
-      - task -l
   run:
     desc: Run the project
     cmds:

@@ -6,8 +6,5 @@ includes:
 tasks:
   install:
     desc: Install Go
-    internal: true
-    status:
-      - "command -v go"
     cmds:
       - task: os:install

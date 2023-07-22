@@ -1,11 +1,8 @@
 version: 3
 
 tasks:
-  default:
-    cmds:
-      - task -l
-
   run:
     desc: Run the project
+    internal: true
     cmds:
       - echo "Hello, darwin!"
