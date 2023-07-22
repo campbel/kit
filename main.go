@@ -11,9 +11,19 @@ import (
 )
 
 type Taskfile struct {
-	Version  string            `yaml:"version,omitempty"`
-	Includes map[string]string `yaml:"includes,omitempty"`
-	Tasks    map[string]any    `yaml:"tasks,omitempty"`
+	Version  string             `yaml:"version,omitempty"`
+	Includes map[string]Include `yaml:"includes,omitempty"`
+	Env      map[string]string  `yaml:"env,omitempty"`
+	Dotenv   []string           `yaml:"dotenv,omitempty"`
+	Tasks    map[string]any     `yaml:"tasks,omitempty"`
+}
+
+type Include struct {
+	Taskfile string         `yaml:"taskfile,omitempty"`
+	Dir      string         `yaml:"dir,omitempty"`
+	Optional bool           `yaml:"optional,omitempty"`
+	Vars     map[string]any `yaml:"vars,omitempty"`
+	Aliases  []string       `yaml:"aliases,omitempty"`
 }
 
 func main() {
@@ -37,18 +47,19 @@ func main() {
 			return err
 		}
 
-		includes := make(map[string]string)
+		includes := make(map[string]Include)
 		for k, v := range taskfile.Includes {
 			path := cwd + "/.kit/" + k
 			if _, err := os.Stat(path); err != nil {
-				if err := Get(v, cwd+"/.kit/"+k, cwd, true); err != nil {
+				if err := Get(v.Taskfile, cwd+"/.kit/"+k, cwd, true); err != nil {
 					return errors.Wrap(err, "failed to get kit "+k)
 				}
 				if taskfile.Includes == nil {
-					taskfile.Includes = make(map[string]string)
+					taskfile.Includes = make(map[string]Include)
 				}
 			}
-			includes[k] = k
+			v.Taskfile = k
+			includes[k] = v
 		}
 
 		taskfile.Includes = includes
