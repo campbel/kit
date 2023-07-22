@@ -1,7 +1,7 @@
 version: "3"
 
 kit:
-  - github.com/campbel/kit/examples
+  golang: github.com/campbel/kit/examples/golang
 
 tasks:
   default:
@@ -11,4 +11,4 @@ tasks:
   setup:
     desc: Setup the project
     cmds:
-      - task: kit:foo:install_go
+      - task: kit:golang:install_go
